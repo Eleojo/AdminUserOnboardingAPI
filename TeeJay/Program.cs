@@ -4,6 +4,8 @@ using Data.DbContext;
 using Data.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Configuration;
+using Serilog;
 
 namespace TeeJay
 {
@@ -14,6 +16,7 @@ namespace TeeJay
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
+            builder.Host.UseSerilog((context, LoggerConfig) =>LoggerConfig.ReadFrom.Configuration(context.Configuration));
             builder.Services.AddScoped<IAdminUserService, AdminUserService>();
             builder.Services.AddControllers();
             builder.Services.AddIdentity<AdminUser, IdentityRole>().AddEntityFrameworkStores<AppDbContext>()

@@ -1,6 +1,9 @@
 using Core.AdminUserServices;
 using Data.Dtos;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace WebAPI.Controllers
@@ -10,35 +13,44 @@ namespace WebAPI.Controllers
     public class AdminUserController : ControllerBase
     {
         private readonly IAdminUserService _adminUserService;
+        private readonly ILogger<AdminUserController> _logger;
 
-        public AdminUserController(IAdminUserService adminUserService)
+        public AdminUserController(IAdminUserService adminUserService, ILogger<AdminUserController> logger)
         {
             _adminUserService = adminUserService;
+            _logger = logger;
         }
-
 
         [HttpPost("onboard-admin-user")]
         public async Task<IActionResult> OnboardAdmin([FromBody] AdminUserDto adminUserDto)
         {
             if (adminUserDto == null)
             {
+                _logger.LogWarning("Received a null AdminUserDto.");
                 return BadRequest("Admin user data is null.");
             }
 
-            var result = await _adminUserService.OnboardAdminAsync(adminUserDto);
+            try
+            {
+                var result = await _adminUserService.OnboardAdminAsync(adminUserDto);
 
-            if (result.Succeeded)
-            {
-                return Ok("Admin user onboarded successfully.");
+                if (result.Succeeded)
+                {
+                    _logger.LogInformation("Admin user onboarded successfully: {Email}", adminUserDto.Email);
+                    return Ok("Admin user onboarded successfully.");
+                }
+                else
+                {
+                    var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                    _logger.LogWarning("Failed to onboard admin user: {Email}. Errors: {Errors}", adminUserDto.Email, errors);
+                    return BadRequest($"Failed to onboard admin user: {errors}");
+                }
             }
-            else
+            catch (Exception ex)
             {
-                // Extract the error messages from the result
-                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-                return BadRequest($"Failed to onboard admin user: {errors}");
+                _logger.LogError(ex, "An error occurred while onboarding admin user: {Email}", adminUserDto.Email);
+                return StatusCode(500, "An internal server error occurred.");
             }
         }
     }
 }
-
-
