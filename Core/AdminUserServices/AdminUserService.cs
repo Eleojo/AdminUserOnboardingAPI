@@ -74,7 +74,7 @@ namespace Core.AdminUserServices
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An error occurred while onboarding admin user '{Email}'.", adminUser.Email);
-                throw; // Re-throw the exception to ensure it is handled by the caller if necessary
+                throw; /// Re-throw the exception to ensure it is handled by the caller if necessary
             }
         }
     }
