@@ -1,0 +1,6 @@
+@TeeJay_HostAddress = http://localhost:5192
+
+GET {{TeeJay_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
